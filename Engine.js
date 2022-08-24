@@ -69,6 +69,10 @@ let RightDown = false
 mouse.up[2] = function() {RightDown = false}
 //RightClick/Mouse2
 mouse.down[2] = function() {RightDown = true}
+//LeftClick/Mouse1
+mouse.down[1] = function() {
+    
+}
 keys.keyup["r"] = function() {
     Camera.position.set(0,0,30)
     Camera.rotation.set(0,0,0)
@@ -98,7 +102,6 @@ document.addEventListener('mousemove', (e) => {
     }
     //Pointer hitbox
     CursorBox.position.set((cX-windowHalf.x)/30,-(cY-windowHalf.y)/30,0)
-    print("x="+CursorBox.position.x,"y="+CursorBox.position.y,"z="+CursorBox.position.z)
 })
 //Keyboard
 let Move = {}
