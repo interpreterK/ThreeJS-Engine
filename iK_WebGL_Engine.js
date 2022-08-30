@@ -16,6 +16,8 @@ const Renderer = new THREE.WebGLRenderer({antialias: true})
 Renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(Renderer.domElement)
 
+const windowHalf = new THREE.Vector2(window.innerWidth/2, window.innerHeight/2)
+
 //Top classes
 const Instance = {
     Box: function(GeometryArray, MaterialArray) {
@@ -29,7 +31,10 @@ const Instance = {
         const Geometry = new THREE.BoxGeometry(...GeometryArray)
         const Sky = new THREE.Mesh(Geometry)
         Scene.add(Sky)
-        return {Geometry: Geometry,Sky: Sky}
+        return {
+            Geometry: Geometry,
+            Sky: Sky
+        }
     }
 }
 
@@ -37,18 +42,30 @@ const Instance = {
 const print = console.log
 const {PI:pi, sin, cos, min, max} = Math
 function clamp(n_min,c,n_max) {
-    return min(n_min,max(c,n_max))
+    return min(n_min, max(c, n_max))
 }
+const Hex_Holder = { //Temp place holders
+    beef: 0xDEADBEEF,
+    babe: 0xBEEFBABE,
+    white: 0xFFFFFF
+}
+
 //3D Objects
-const Floor = Instance.Box([150,150,10,10],[{color:0xDEADBEEF}])
+const Floor = Instance.Box([150,150,10,10],[{color:Hex_Holder.beef}])
 const Box = Instance.Box([5,5,10,10],[{color:0xff0000}])
 const Box2 = Instance.Box([5,5,10,10],[{color:0x0000ff}])
 const Box3 = Instance.Box([5,5,10,10],[{color:0x00ff00}])
-const CursorBox = Instance.Box([2,2,2,2],[{color:0xFFFFFF}])
+const CursorBox = Instance.Box([2,2,2,2],[{color:Hex_Holder.white}])
 const Roof = Instance.Box([10,1,3,5],[{color:0xffe100}])
+const TestCube = Instance.Box([3,3,10,10],[{color:Hex_Holder.babe}])
+Floor.rotation.x -= pi/2 //deg(90)
+Floor.position.y = -8
+Box2.position.x = 8
+Box3.position.x = -8
+Roof.position.y = 8
 
 //Lighting
-const Ambient = new THREE.HemisphereLight(0xffffff, 0xFFFFFF, .8);
+const Ambient = new THREE.HemisphereLight(Hex_Holder.white, Hex_Holder.white, .8);
 Scene.add(Ambient)
 
 function PathStrings(fileName) {
@@ -60,17 +77,11 @@ function PathStrings(fileName) {
 const SkyBox = Instance.SkyBox([1e4,1e4,1e4])
 const Sky = PathStrings('yonder')
 
-Floor.rotation.x -= pi/2 //deg(90)
-Floor.position.y = -8
-Box2.position.x = 8
-Box3.position.x= -8
-Roof.position.y = 8
-
 const [mouse,keys] = [{up:{},down:{}},{keydown:{},keyup:{}}]
+let [maxX_v1,maxX_v2] = [-.15,0]
 let RightDown = false
 let sens = .5
 let lerpAlpha = 10
-let [maxX_v1,maxX_v2] = [-.15,0]
 let Move = {}
 let CameraSpeed = .2
 let acout = 0
@@ -89,7 +100,6 @@ keys.keyup["r"] = function() {
     print("Camera reset")
 }
 //Camera
-const windowHalf = new THREE.Vector2(window.innerWidth/2, window.innerHeight/2)
 function lookVector() {
     return new THREE.Vector3(0,0,-1).applyEuler(Camera.rotation, Camera.eulerOrder)
 }
@@ -126,26 +136,23 @@ document.addEventListener('keyup', (e) => {
     if (f) {f()}
 })
 function RecursiveInput() {
-    const rY = Camera.rotation.y
+    const [rY,lv] = [Camera.rotation.y,lookVector()]
+    print(lv)
     if (Move["w"]) {
-        /*
-        Camera.position.x += sin(rY)
-        Camera.position.z += -cos(rY)
-        */
-        Camera.position.x += lookVector()+new THREE.Vector3(0,0,.1)
-        print(Camera.position.x)
+        Camera.position.x += sin(rY)+lv.x
+        Camera.position.z += -cos(rY)+lv.z
     }
     if (Move["a"]) {
-        Camera.position.x += sin(rY-pi/2)
-        Camera.position.z += -cos(rY-pi/2)
+        Camera.position.x += sin(rY-pi/2)+lv.x
+        Camera.position.z += -cos(rY-pi/2)+lv.z
     }
     if (Move["s"]) {
-        Camera.position.x -= sin(rY)
-        Camera.position.z -= -cos(rY)
+        Camera.position.x -= sin(rY)+lv.x
+        Camera.position.z -= -cos(rY)+lv.z
     }
     if (Move["d"]) {
-        Camera.position.x += sin(rY+pi/2)
-        Camera.position.z += -cos(rY+pi/2)
+        Camera.position.x += sin(rY+pi/2)+lv.x
+        Camera.position.z += -cos(rY+pi/2)+lv.z
     }
     if (Move["Shift"]) {
         Camera.position.y += .1
